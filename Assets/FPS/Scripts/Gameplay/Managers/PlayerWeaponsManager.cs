@@ -72,10 +72,11 @@ namespace Unity.FPS.Gameplay
         [Tooltip("Layer to set FPS weapon gameObjects to")]
         public LayerMask FpsWeaponLayer;
 
+
         public bool IsAiming { get; private set; }
         public bool IsPointingAtEnemy { get; private set; }
         public int ActiveWeaponIndex { get; private set; }
-
+      
         public UnityAction<WeaponController> OnSwitchedToWeapon;
         public UnityAction<WeaponController, int> OnAddedWeapon;
         public UnityAction<WeaponController, int> OnRemovedWeapon;
@@ -93,8 +94,11 @@ namespace Unity.FPS.Gameplay
         WeaponSwitchState m_WeaponSwitchState;
         int m_WeaponSwitchNewWeaponIndex;
 
+       
+
         void Start()
         {
+            
             ActiveWeaponIndex = -1;
             m_WeaponSwitchState = WeaponSwitchState.Down;
 
@@ -119,6 +123,8 @@ namespace Unity.FPS.Gameplay
             SwitchWeapon(true);
         }
 
+        
+
         void Update()
         {
             // shoot handling
@@ -133,6 +139,7 @@ namespace Unity.FPS.Gameplay
                 {
                     IsAiming = false;
                     activeWeapon.StartReloadAnimation();
+                    activeWeapon.Reload();
                     return;
                 }
                 // handle aiming down sights

@@ -96,6 +96,14 @@ namespace Unity.FPS.Gameplay
         [Tooltip("Damage recieved when falling at the maximum speed")]
         public float FallDamageAtMaxSpeed = 50f;
 
+        [Header("Slide")]
+        public float slideDistance;
+        public float slideSpeed;
+
+
+
+
+
         public UnityAction<bool> OnStanceChanged;
 
         public Vector3 CharacterVelocity { get; set; }
@@ -103,6 +111,7 @@ namespace Unity.FPS.Gameplay
         public bool HasJumpedThisFrame { get; private set; }
         public bool IsDead { get; private set; }
         public bool IsCrouching { get; private set; }
+        public bool IsSliding { get; private set; }
 
         public float RotationMultiplier
         {
@@ -209,11 +218,41 @@ namespace Unity.FPS.Gameplay
             if (m_InputHandler.GetCrouchInputDown())
             {
                 SetCrouchingState(!IsCrouching, false);
+
+                if (IsCrouching &&
+                    m_InputHandler.GetSprintInputHeld() &&
+                    !Vector3.zero.Equals(m_InputHandler.GetMoveInput()))
+                {
+                    // slide 
+                    IsSliding = true;
+
+                }
             }
 
             UpdateCharacterHeight(false);
 
             HandleCharacterMovement();
+        }
+
+        // slide 
+        void FixedUpdate()
+        {
+            
+
+            if (IsSliding)
+            {
+                float distanceMoved = 0f;
+
+                while (distanceMoved<slideDistance)
+                {
+                    distanceMoved += slideSpeed* Time.fixedDeltaTime;
+                    transform.Translate(Vector3.forward* slideSpeed * Time.fixedDeltaTime);
+                }
+
+            IsSliding = false;
+
+            }
+            
         }
 
         void OnDie()
@@ -290,9 +329,9 @@ namespace Unity.FPS.Gameplay
             bool isSprinting = m_InputHandler.GetSprintInputHeld();
             {
                 if (isSprinting)
-                {
+               {
                     isSprinting = SetCrouchingState(false, false);
-                }
+               }
 
                 float speedModifier = isSprinting ? SprintSpeedModifier : 1f;
 
@@ -304,6 +343,7 @@ namespace Unity.FPS.Gameplay
                 {
                     // calculate the desired velocity from inputs, max speed, and current slope
                     Vector3 targetVelocity = worldspaceMoveInput * MaxSpeedOnGround * speedModifier;
+
                     // reduce speed if crouching by crouch speed ratio
                     if (IsCrouching)
                         targetVelocity *= MaxSpeedCrouchedRatio;
@@ -444,6 +484,10 @@ namespace Unity.FPS.Gameplay
             }
             else
             {
+                // FIXME: detect obstructions while crouching 
+                // if later one obstruction is lower than crouching height
+                // this can be buggy 
+
                 // Detect obstructions
                 if (!ignoreObstructions)
                 {
